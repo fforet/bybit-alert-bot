@@ -1,10 +1,12 @@
+import os
 import requests
 import time
 import threading
 from flask import Flask, request
 
-TOKEN = "8071752769:AAHA7kctabtincHrdu3jJLsoZAz4ZJ3yXTI"
-CHAT_ID = "1155294884"
+# 환경변수에서 불러오기
+TOKEN = os.environ.get("TELEGRAM_TOKEN")
+CHAT_ID = os.environ.get("CHAT_ID")
 BASE_URL = f"https://api.telegram.org/bot{TOKEN}"
 
 app = Flask(__name__)
@@ -13,12 +15,7 @@ alarm_id = 1
 lock = threading.Lock()
 
 def get_price(symbol, market):
-    if market == "현물":
-        url = f"https://api.bybit.com/v2/public/tickers?symbol={symbol.upper()}"
-    elif market == "선물":
-        url = f"https://api.bybit.com/v2/public/tickers?symbol={symbol.upper()}"
-    else:
-        return None
+    url = f"https://api.bybit.com/v2/public/tickers?symbol={symbol.upper()}"
     try:
         response = requests.get(url)
         return float(response.json()["result"][0]["last_price"])
@@ -72,6 +69,9 @@ def webhook():
                     send_message("🚫 해당 번호의 알람이 없습니다.")
         except:
             send_message("❌ 형식 오류: /delete [번호]")
+
+    elif text.startswith("/start"):
+        send_message("👋 환영합니다! 사용법: 현물|선물 심볼 목표가격\n예: 현물 btcusdt 80000")
 
     else:
         parts = text.split()
