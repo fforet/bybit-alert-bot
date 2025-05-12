@@ -42,7 +42,7 @@ def get_price(symbol, market):
             print(f"[선물 오류] {e}")
             return None
 
-return None
+    return None
 
 # 텔레그램 메시지 보내기
 def send_message(text):
