@@ -58,7 +58,7 @@ def webhook():
             else:
                 msg = "📋 등록된 알람 목록:\n"
                 for idx, alarm in enumerate(alarms, 1):
-                    msg += f"{idx}. [{alarm['market']}] {alarm['symbol']} ≥ {alarm['target']}
+                    msg += f"{idx}. [{alarm['market']}] {alarm['symbol']} ≥ {alarm['target']}\n"
                 send_message(msg)
     elif text.startswith("/delete"):
         try:
