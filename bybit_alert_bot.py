@@ -21,8 +21,11 @@ def get_price(symbol, market):
     if market == "현물":
         url = f"https://api.bybit.com/spot/v3/public/quote/ticker/price?symbol={symbol}"
         try:
-            res = requests.get(url).json()
-            return float(res["price"])
+            res = requests.get(url)
+            print(f"[현물 API] {url} → {res.status_code}")
+            data = res.json()
+            print(f"[현물 응답] {data}")
+            return float(data["price"])
         except Exception as e:
             print(f"[현물 오류] {e}")
             return None
@@ -30,8 +33,11 @@ def get_price(symbol, market):
     elif market == "선물":
         url = f"https://api.bybit.com/v2/public/tickers?symbol={symbol}"
         try:
-            res = requests.get(url).json()
-            return float(res["result"][0]["last_price"])
+            res = requests.get(url)
+            print(f"[선물 API] {url} → {res.status_code}")
+            data = res.json()
+            print(f"[선물 응답] {data}")
+            return float(data["result"][0]["last_price"])
         except Exception as e:
             print(f"[선물 오류] {e}")
             return None
