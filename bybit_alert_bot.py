@@ -56,7 +56,7 @@ def webhook():
             if not alarms:
                 send_message("📭 현재 등록된 알람이 없습니다.")
             else:
-                msg = "📋 등록된 알람 목록:
+                msg = "📋 등록된 알람 목록:"
 "
                 for idx, alarm in enumerate(alarms, 1):
                     msg += f"{idx}. [{alarm['market']}] {alarm['symbol']} ≥ {alarm['target']}
