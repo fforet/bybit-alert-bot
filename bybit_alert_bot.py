@@ -15,12 +15,31 @@ alarm_id = 1
 lock = threading.Lock()
 
 def get_price(symbol, market):
-    url = f"https://api.bybit.com/v2/public/tickers?symbol={symbol.upper()}"
-    try:
-        response = requests.get(url)
-        return float(response.json()["result"][0]["last_price"])
-    except:
-        return None
+    symbol = symbol.upper()
+    
+    if market == "현물":
+        url = f"https://api.bybit.com/spot/v3/public/quote/ticker/price?symbol={symbol}"
+        try:
+            res = requests.get(url).json()
+            price = float(res["price"])
+            print(f"[현물] {symbol} 현재가: {price}")
+            return price
+        except Exception as e:
+            print(f"[현물 오류] {e}")
+            return None
+
+    elif market == "선물":
+        url = f"https://api.bybit.com/v2/public/tickers?symbol={symbol}"
+        try:
+            res = requests.get(url).json()
+            price = float(res["result"][0]["last_price"])
+            print(f"[선물] {symbol} 현재가: {price}")
+            return price
+        except Exception as e:
+            print(f"[선물 오류] {e}")
+            return None
+
+    return None
 
 def send_message(text):
     url = f"{BASE_URL}/sendMessage"
