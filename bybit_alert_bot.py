@@ -129,8 +129,8 @@ def webhook():
     return "", 200
 
 if __name__ == "__main__":
+    print("✅ 알람 체크 스레드 실행됨")  # 디버깅용 로그
     t = threading.Thread(target=check_alarms)
     t.daemon = True
     t.start()
-    print("✅ 알람 체크 스레드 실행됨")  # ← 이 줄은 t.start()와 같은 들여쓰기 레벨
     app.run(host="0.0.0.0", port=8443)
