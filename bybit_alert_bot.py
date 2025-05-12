@@ -132,5 +132,5 @@ if __name__ == "__main__":
     t = threading.Thread(target=check_alarms)
     t.daemon = True
     t.start()
-     print("✅ 알람 체크 스레드 실행됨")  # ← 디버깅 로그 추가
+        print("✅ 알람 체크 스레드 실행됨")  # ← 디버깅 로그 추가
     app.run(host="0.0.0.0", port=8443)
