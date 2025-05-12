@@ -17,12 +17,11 @@ lock = threading.Lock()
 # 가격 조회 함수 (현물/선물)
 def get_price(symbol, market):
     symbol = symbol.upper()
-    print(f"📡 가격 요청: {market} {symbol}")
 
-    if market == "현미":
-        url = f"https://api.bybit.com/spot/v3/public/quote/ticker/price?symbol={symbol}"
-    elif market == "선미":
-        url = f"https://api.bybit.com/v2/public/tickers?symbol={symbol}"
+    if market == "현물":
+        url = f"https://api.bybit.com/v5/market/tickers?category=spot&symbol={symbol}"
+    elif market == "선물":
+        url = f"https://api.bybit.com/v5/market/tickers?category=linear&symbol={symbol}"
     else:
         print("❌ 잘못된 마켓명")
         return None
@@ -33,12 +32,11 @@ def get_price(symbol, market):
         data = res.json()
         print(f"📦 응답: {data}")
 
-        if market == "현미":
-            return float(data["result"]["price"])
-        else:
-            return float(data["result"][0]["last_price"])
+        # 공통 구조: "result" → "list" → [0] → "lastPrice"
+        return float(data["result"]["list"][0]["lastPrice"])
+
     except Exception as e:
-        print(f"🚨 가격 채팅 오류: {e}")
+        print(f"🚨 가격 조회 오류: {e}")
         return None
 
 # 테마그래밍 메시지 보내기
@@ -102,11 +100,11 @@ def webhook():
             send_message("❌ 형식 오류: /delete [번호]")
 
     elif text.startswith("/start"):
-        send_message("👋 환영합니다! 사용법: 현미|\uc120\ubbf8 \uc2ec\ubcfc \ubaa9\ud45c\uac00\uaca9\\n\uc608: \ud604\ubbf8 btcusdt 80000")
+        send_message("👋 환영합니다! 사용법: 현물|\uc120\ubbf8 \uc2ec\ubcfc \ubaa9\ud45c\uac00\uaca9\\n\uc608: \ud604\ubbf8 btcusdt 80000")
 
     else:
         parts = text.split()
-        if len(parts) == 3 and parts[0] in ["현미", "선미"]:
+        if len(parts) == 3 and parts[0] in ["현물", "선물"]:
             market, symbol, target = parts
             try:
                 target_price = float(target)
@@ -125,7 +123,7 @@ def webhook():
             except:
                 send_message("❌ 숫자 형식 오류 : 가격은 숫자여야 합니다.")
         else:
-            send_message("❓ 사용법: 현미|선미 심볼 목표가격\n예: 현미 btcusdt 80000")
+            send_message("❓ 사용법: 현물|선물 심볼 목표가격\n예: 현물 btcusdt 80000")
 
     return "", 200
 
