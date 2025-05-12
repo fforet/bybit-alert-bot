@@ -14,44 +14,45 @@ alarms = []
 alarm_id = 1
 lock = threading.Lock()
 
-# 현물/선물 가격 가져오기 (v5 API 기반)
+# 가격 조회 함수 (현물/선물)
 def get_price(symbol, market):
     symbol = symbol.upper()
-    headers = {"User-Agent": "Mozilla/5.0"}
+    print(f"📡 가격 요청: {market} {symbol}")
 
-    if market == "전문":  # 전문 = “현물”
-        url = f"https://api.bybit.com/v5/market/tickers?category=spot&symbol={symbol}"
-        try:
-            res = requests.get(url, headers=headers)
-            data = res.json()
-            print(f"[현물 응답] {data}")
-            return float(data["result"]["list"][0]["lastPrice"])
-        except Exception as e:
-            print(f"[현물 오류] {e}")
-            return None
-
-    elif market == "선문":  # 선문 = “선물”
+    if market == "현미":
+        url = f"https://api.bybit.com/spot/v3/public/quote/ticker/price?symbol={symbol}"
+    elif market == "선미":
         url = f"https://api.bybit.com/v2/public/tickers?symbol={symbol}"
-        try:
-            res = requests.get(url, headers=headers)
-            data = res.json()
-            print(f"[선물 응답] {data}")
+    else:
+        print("❌ 잘못된 마켓명")
+        return None
+
+    try:
+        res = requests.get(url)
+        print(f"🔄 API 상태: {res.status_code}")
+        data = res.json()
+        print(f"📦 응답: {data}")
+
+        if market == "현미":
+            return float(data["result"]["price"])
+        else:
             return float(data["result"][0]["last_price"])
-        except Exception as e:
-            print(f"[선물 오류] {e}")
-            return None
+    except Exception as e:
+        print(f"🚨 가격 채팅 오류: {e}")
+        return None
 
-    return None
-
-# 텔레그램 메시지 보내기
+# 테마그래밍 메시지 보내기
 def send_message(text):
     url = f"{BASE_URL}/sendMessage"
     data = {"chat_id": CHAT_ID, "text": text}
     requests.post(url, data=data)
 
-# 알람 체크 쓰레드
+# 가격 체크 스레드
+
 def check_alarms():
+    print("✅ check_alarms() 함수 시작")
     while True:
+        print("🔄 가격 확인 중...")
         time.sleep(10)
         with lock:
             for alarm in alarms:
@@ -69,9 +70,9 @@ def check_alarms():
                         if last_alert is None or time.time() - last_alert > 180:
                             send_message(f"🚨 [{alarm['market']}] {alarm['symbol']} 목표가 {target} 도달! 현재가: {price}")
                             alarm["last_alert"] = time.time()
-
                 alarm["prev_price"] = price
 
+# 테마그래밍 요청 처리
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
     global alarm_id
@@ -81,7 +82,7 @@ def webhook():
     if text.startswith("/list"):
         with lock:
             if not alarms:
-                send_message("📬 현재 등록된 알람이 없습니다.")
+                send_message("📍 등록된 알람이 없습니다.")
             else:
                 msg = "📋 등록된 알람 목록:\n"
                 for idx, alarm in enumerate(alarms, 1):
@@ -96,16 +97,16 @@ def webhook():
                     deleted = alarms.pop(idx)
                     send_message(f"❌ 알람 삭제 완료: [{deleted['market']}] {deleted['symbol']} ≥ {deleted['target']}")
                 else:
-                    send_message("🚫 해당 번호의 알람이 없습니다.")
+                    send_message("🚫 해당 번호가 없습니다.")
         except:
             send_message("❌ 형식 오류: /delete [번호]")
 
     elif text.startswith("/start"):
-        send_message("👋 환영합니다! 사용법: 현문|\uc120\ubb38 \uc2ec\ubc8b \ubaa9\ud45c\uac00\uaca9\n\uc608: \ud604\ubb38 btcusdt 80000")
+        send_message("👋 환영합니다! 사용법: 현미|\uc120\ubbf8 \uc2ec\ubcfc \ubaa9\ud45c\uac00\uaca9\\n\uc608: \ud604\ubbf8 btcusdt 80000")
 
     else:
         parts = text.split()
-        if len(parts) == 3 and parts[0] in ["현물", "선물"]:
+        if len(parts) == 3 and parts[0] in ["현미", "선미"]:
             market, symbol, target = parts
             try:
                 target_price = float(target)
@@ -124,12 +125,12 @@ def webhook():
             except:
                 send_message("❌ 숫자 형식 오류 : 가격은 숫자여야 합니다.")
         else:
-            send_message("❓ 사용법: 현문|선문 심벋 목표가격\n예: 현문 btcusdt 80000")
+            send_message("❓ 사용법: 현미|선미 심볼 목표가격\n예: 현미 btcusdt 80000")
 
     return "", 200
 
 if __name__ == "__main__":
-    print("✅ 알람 체크 스레드 실행됨")  # 디버깅용 로그
+    print("✅ 메인 블록 시작")
     t = threading.Thread(target=check_alarms)
     t.daemon = True
     t.start()
