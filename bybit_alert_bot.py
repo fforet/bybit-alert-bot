@@ -1,4 +1,3 @@
-
 import requests
 import time
 import threading
@@ -51,6 +50,7 @@ def webhook():
     global alarm_id
     data = request.get_json()
     text = data["message"].get("text", "")
+
     if text.startswith("/list"):
         with lock:
             if not alarms:
@@ -60,6 +60,7 @@ def webhook():
                 for idx, alarm in enumerate(alarms, 1):
                     msg += f"{idx}. [{alarm['market']}] {alarm['symbol']} ≥ {alarm['target']}\n"
                 send_message(msg)
+
     elif text.startswith("/delete"):
         try:
             idx = int(text.split()[1]) - 1
@@ -71,6 +72,7 @@ def webhook():
                     send_message("🚫 해당 번호의 알람이 없습니다.")
         except:
             send_message("❌ 형식 오류: /delete [번호]")
+
     else:
         parts = text.split()
         if len(parts) == 3 and parts[0] in ["현물", "선물"]:
@@ -88,14 +90,14 @@ def webhook():
                     })
                     alarm_id += 1
                     send_message(f"✅ 알람 등록 완료: [{market}] {symbol.upper()} ≥ {target_price}")
-    except:
-        send_message("❌ 숫자 형식 오류 : 가격은 숫자여야 합니다.")
-    else:
-        send_message("❓ 사용법: 현물|선물 심볼 목표가격\n예: 현물 btcusdt 80000")
-            return "", 200
+            except:
+                send_message("❌ 숫자 형식 오류 : 가격은 숫자여야 합니다.")
+        else:
+            send_message("❓ 사용법: 현물|선물 심볼 목표가격\n예: 현물 btcusdt 80000")
+
+    return "", 200
 
 if __name__ == "__main__":
-    import threading
     t = threading.Thread(target=check_alarms)
     t.daemon = True
     t.start()
