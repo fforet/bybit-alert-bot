@@ -17,7 +17,7 @@ lock = threading.Lock()
 # 현물/선물 가격 가져오기
 def get_price(symbol, market):
     symbol = symbol.upper()
-    
+
     if market == "현물":
         url = f"https://api.bybit.com/spot/v3/public/quote/ticker/price?symbol={symbol}"
         try:
@@ -25,7 +25,7 @@ def get_price(symbol, market):
             print(f"[현물 API] {url} → {res.status_code}")
             data = res.json()
             print(f"[현물 응답] {data}")
-            return float(data["price"])
+            return float(data["result"]["price"])
         except Exception as e:
             print(f"[현물 오류] {e}")
             return None
@@ -42,7 +42,7 @@ def get_price(symbol, market):
             print(f"[선물 오류] {e}")
             return None
 
-    return None
+return None
 
 # 텔레그램 메시지 보내기
 def send_message(text):
