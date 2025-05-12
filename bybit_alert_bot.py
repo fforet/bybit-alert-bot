@@ -90,7 +90,7 @@ def webhook():
                     send_message(f"✅ 알람 등록 완료: [{market}] {symbol.upper()} ≥ {target_price}")
             except:
                 send_message("🚫 숫자 형식 오류: 가격은 숫자여야 합니다.")
-     else:
+else:
     send_message("❓ 사용법: 현물|선물 심볼 목표가격\n예: 현물 btcusdt 80000")
     return "", 200
 
