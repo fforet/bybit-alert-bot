@@ -14,7 +14,7 @@ alarms = []
 alarm_id = 1
 lock = threading.Lock()
 
-# 가격 조회 함수
+# ✅ 가격 조회 함수 (현물/선물)
 def get_price(symbol, market):
     symbol = symbol.upper()
 
@@ -27,7 +27,8 @@ def get_price(symbol, market):
         return None
 
     try:
-        res = requests.get(url)
+        headers = {"User-Agent": "Mozilla/5.0"}  # 🔧 헤더 추가
+        res = requests.get(url, headers=headers)
         print(f"🔄 API 상태: {res.status_code}")
         data = res.json()
         print(f"📦 응답: {data}")
@@ -37,13 +38,13 @@ def get_price(symbol, market):
         print(f"🚨 가격 조회 오류: {e}")
         return None
 
-# 텔레그램 메시지 전송
+# 텔레그램 메시지 보내기
 def send_message(text):
     url = f"{BASE_URL}/sendMessage"
     data = {"chat_id": CHAT_ID, "text": text}
     requests.post(url, data=data)
 
-# 알람 확인 쓰레드
+# 가격 체크 스레드
 def check_alarms():
     print("✅ check_alarms() 함수 시작")
     while True:
@@ -58,22 +59,16 @@ def check_alarms():
                 prev_price = alarm.get("prev_price")
                 target = alarm["target"]
 
-                print(f"📈 현재가: {price}, 목표가: {target}, 이전가: {prev_price}")
-
                 if prev_price is not None:
                     crossed = (prev_price < target <= price) or (prev_price > target >= price)
-                    print(f"🔍 crossed 조건: {crossed}")
                     if crossed:
                         last_alert = alarm.get("last_alert")
                         if last_alert is None or time.time() - last_alert > 180:
-                            print("🚨 알람 조건 충족! 알림 전송")
                             send_message(f"🚨 [{alarm['market']}] {alarm['symbol']} 목표가 {target} 도달! 현재가: {price}")
                             alarm["last_alert"] = time.time()
-                        else:
-                            print(f"⏱️ 최근 알림 후 {int(time.time() - last_alert)}초 경과 (3분 제한 대기 중)")
                 alarm["prev_price"] = price
 
-# 웹훅 처리
+# 텔레그램 요청 처리
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
     global alarm_id
@@ -132,7 +127,7 @@ def webhook():
 
 # 실행
 if __name__ == "__main__":
-    print("✅ 메인 시작")
+    print("✅ 메인 블록 시작")
     t = threading.Thread(target=check_alarms)
     t.daemon = True
     t.start()
